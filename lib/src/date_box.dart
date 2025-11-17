@@ -8,12 +8,13 @@ class DateBox extends StatelessWidget {
     this.color,
     this.width = 24.0,
     this.height = 24.0,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
+    this.borderRadius,
     this.onPressed,
     this.showDot = false,
     this.isSelected = false,
     this.isToday = false,
     this.hasEvent = false,
+    this.eventIcons,
   }) : super(key: key);
 
   /// Child widget.
@@ -29,7 +30,7 @@ class DateBox extends StatelessWidget {
   final double height;
 
   /// Container border radius.
-  final BorderRadius borderRadius;
+  final BorderRadius? borderRadius;
 
   /// Pressed callback function.
   final VoidCallback? onPressed;
@@ -46,6 +47,9 @@ class DateBox extends StatelessWidget {
   /// Show event in DateBox.
   final bool hasEvent;
 
+  /// Event icons to display
+  final List<Widget>? eventIcons;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -53,8 +57,8 @@ class DateBox extends StatelessWidget {
       alignment: Alignment.center,
       child: InkResponse(
         onTap: onPressed,
-        radius: 16.0,
-        borderRadius: borderRadius,
+        radius: 16.r,
+        borderRadius: borderRadius ?? BorderRadius.circular(8.r),
         highlightShape: BoxShape.rectangle,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
@@ -62,27 +66,57 @@ class DateBox extends StatelessWidget {
           height: height,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected
-                ? theme.primaryColor
-                : isToday
-                    ? theme.highlightColor
-                    : null,
-            borderRadius: borderRadius,
+            color: isSelected ? const Color(0xFFF5F5F5) : Colors.white,
+            borderRadius: borderRadius ?? BorderRadius.circular(12.r),
+            border: isSelected
+                ? Border.all(
+                    color: Colors.green,
+                    width: 2.w,
+                  )
+                : Border.all(
+                    color: Colors.transparent,
+                    width: 2.w,
+                  ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4.r,
+                      offset: Offset(0, 2.h),
+                    ),
+                  ]
+                : null,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
             children: [
-              child,
-              if (showDot && hasEvent)
-                Container(
-                  margin: const EdgeInsets.all(2.0),
-                  height: 4,
-                  width: 4,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected
-                        ? theme.colorScheme.onPrimary
-                        : theme.colorScheme.secondary,
+              // Primary date (solar calendar)
+              Center(child: child),
+              // Event icons positioned at top-right
+              if (eventIcons != null && eventIcons!.isNotEmpty)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: eventIcons!.take(2).toList(),
+                  ),
+                ),
+              if (showDot && hasEvent && eventIcons == null)
+                Positioned(
+                  bottom: 2.h,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      height: 4.h,
+                      width: 4.w,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected
+                            ? Colors.green
+                            : theme.colorScheme.secondary,
+                      ),
+                    ),
                   ),
                 ),
             ],

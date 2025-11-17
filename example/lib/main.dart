@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_calendar/flutter_advanced_calendar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,76 +15,85 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _calendarControllerToday = AdvancedCalendarController.today();
-  final _calendarControllerCustom =
-      AdvancedCalendarController(DateTime(2022, 10, 23));
-  final events = <DateTime>[
-    DateTime.now(),
-    DateTime(2022, 10, 10),
-  ];
+  
+  // Example event map with GĐCT and GĐHT events
+  Map<DateTime, List<CalendarEvent>> get eventMap {
+    final now = DateTime.now();
+    // Use UTC with hour 12 to match toZeroTime() behavior
+    final today = DateTime.utc(now.year, now.month, now.day, 12);
+    
+    return {
+      // Example: Today has 1 GĐCT event
+      today: [
+        const CalendarEvent(type: 'GĐCT', quantity: 1),
+      ],
+      // Example: Tomorrow has 2 events (GĐCT and GĐHT)
+      DateTime.utc(now.year, now.month, now.day + 1, 12): [
+        const CalendarEvent(type: 'GĐCT', quantity: 2),
+        const CalendarEvent(type: 'GĐHT', quantity: 2),
+      ],
+      // Example: Day after tomorrow has 2 events
+      DateTime.utc(now.year, now.month, now.day + 2, 12): [
+        const CalendarEvent(type: 'GĐCT', quantity: 2),
+        const CalendarEvent(type: 'GĐHT', quantity: 3),
+      ],
+    };
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    // _calendarControllerToday.v
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Advanced Calendar Example'),
-        ),
-        body: Builder(
-          builder: (context) {
-            final theme = Theme.of(context);
-
-            return Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AdvancedCalendar(
-                  showNavigationArrows: true,
-                  controller: _calendarControllerToday,
-                  events: events,
-                  startWeekDay: 1,
-                ),
-                Theme(
-                  data: theme.copyWith(
-                    textTheme: theme.textTheme.copyWith(
-                      titleMedium: theme.textTheme.titleMedium!.copyWith(
-                        fontSize: 16,
-                        color: theme.colorScheme.secondary,
-                      ),
-                      bodyLarge: theme.textTheme.bodyLarge!.copyWith(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
-                      bodyMedium: theme.textTheme.bodyMedium!.copyWith(
-                        fontSize: 12,
-                        color: Colors.black87,
+    return ScreenUtilInit(
+      designSize: const Size(375, 812),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return MaterialApp(
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          home: Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              title: const Text('Lịch Việt Nam'),
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              elevation: 0,
+            ),
+            body: Builder(
+              builder: (context) {
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: AdvancedCalendar(
+                      showNavigationArrows: false ,
+                      disableScroll: true,
+                      showHandleBar: false,
+                      controller: _calendarControllerToday,
+                      eventMap: eventMap,
+                      startWeekDay: 1,
+                      weekLineHeight: 72.h,
+                      innerDot: true,
+                      keepLineSize: true,
+                      calendarTextStyle: TextStyle(
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w400,
+                        height: 1.5125,
+                        letterSpacing: 0,
                       ),
                     ),
-                    primaryColor: Colors.red,
-                    highlightColor: Colors.yellow,
-                    disabledColor: Colors.green,
                   ),
-                  child: AdvancedCalendar(
-                    controller: _calendarControllerCustom,
-                    events: events,
-                    weekLineHeight: 48.0,
-                    startWeekDay: 1,
-                    innerDot: true,
-                    keepLineSize: true,
-                    calendarTextStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400,
-                      height: 1.3125,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -12,6 +12,7 @@ dependencies:
 
   flutter_advanced_calendar:
     path: ../
+  flutter_screenutil: ^5.9.0
 
 flutter:
   uses-material-design: true

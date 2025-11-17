@@ -4,14 +4,12 @@ class HandleBar extends StatelessWidget {
   const HandleBar({
     Key? key,
     this.decoration,
-    this.margin = const EdgeInsets.only(
-      top: 8.0,
-    ),
+    this.margin,
     this.onPressed,
   }) : super(key: key);
 
   final BoxDecoration? decoration;
-  final EdgeInsetsGeometry margin;
+  final EdgeInsetsGeometry? margin;
   final VoidCallback? onPressed;
 
   @override
@@ -20,16 +18,18 @@ class HandleBar extends StatelessWidget {
       onTap: onPressed,
       behavior: HitTestBehavior.translucent,
       child: Container(
-        margin: margin,
+        margin: margin ?? EdgeInsets.only(
+          top: 8.h,
+        ),
         alignment: Alignment.center,
         child: FractionallySizedBox(
           widthFactor: 0.1,
           child: Container(
-            height: 4.0,
+            height: 4.h,
             decoration: decoration ??
                 BoxDecoration(
                   color: Theme.of(context).dividerColor,
-                  borderRadius: BorderRadius.circular(2.0),
+                  borderRadius: BorderRadius.circular(2.r),
                 ),
           ),
         ),

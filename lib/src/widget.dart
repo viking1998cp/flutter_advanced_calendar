@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
+import 'calendar_event.dart';
 import 'controller.dart';
 import 'datetime_util.dart';
 
@@ -19,6 +21,7 @@ class AdvancedCalendar extends StatefulWidget {
     this.controller,
     this.startWeekDay,
     this.events,
+    this.eventMap,
     this.weekLineHeight = 32.0,
     this.preloadMonthViewAmount = 13,
     this.preloadWeekViewAmount = 21,
@@ -30,6 +33,8 @@ class AdvancedCalendar extends StatefulWidget {
     this.keepLineSize = false,
     this.calendarTextStyle,
     this.showNavigationArrows = false,
+    this.disableScroll = false,
+    this.showHandleBar = true,
   })  : assert(
           keepLineSize && innerDot ||
               innerDot && !keepLineSize ||
@@ -56,8 +61,11 @@ class AdvancedCalendar extends StatefulWidget {
   /// Weeks lines amount in month view.
   final int weeksInMonthViewAmount;
 
-  /// List of points for the week and month
+  /// List of points for the week and month (deprecated, use eventMap instead)
   final List<DateTime>? events;
+
+  /// Map of dates to their calendar events (GĐCT, GĐHT)
+  final Map<DateTime, List<CalendarEvent>>? eventMap;
 
   /// The first day of the week starts[0-6]
   final int? startWeekDay;
@@ -80,6 +88,12 @@ class AdvancedCalendar extends StatefulWidget {
 
   /// Show navigation arrows.
   final bool showNavigationArrows;
+
+  /// Disable scroll - only show week view (no month view expansion)
+  final bool disableScroll;
+
+  /// Show or hide the handle bar
+  final bool showHandleBar;
 
   @override
   _AdvancedCalendarState createState() => _AdvancedCalendarState();
@@ -171,68 +185,88 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
       color: Colors.transparent,
       child: DefaultTextStyle.merge(
         style: theme.textTheme.bodyMedium,
-        child: GestureDetector(
-          onVerticalDragStart: (details) {
-            _captureOffset = details.globalPosition;
-          },
-          onVerticalDragUpdate: (details) {
-            final moveOffset = details.globalPosition;
-            final diffY = moveOffset.dy - _captureOffset!.dy;
+        child: widget.disableScroll
+            ? _buildCalendarContent()
+            : GestureDetector(
+                onVerticalDragStart: widget.disableScroll
+                    ? null
+                    : (details) {
+                        _captureOffset = details.globalPosition;
+                      },
+                onVerticalDragUpdate: widget.disableScroll
+                    ? null
+                    : (details) {
+                        final moveOffset = details.globalPosition;
+                        final diffY = moveOffset.dy - _captureOffset!.dy;
 
-            _animationController.value =
-                _animationValue + diffY / (widget.weekLineHeight * 5);
-          },
-          onVerticalDragEnd: (details) => _handleFinishDrag(),
-          onVerticalDragCancel: _handleFinishDrag,
-          child: Container(
-            color: Colors.transparent,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ValueListenableBuilder<int>(
-                  valueListenable: _monthViewCurrentPage,
-                  builder: (_, value, __) {
-                    return Header(
-                      monthDate:
-                          _monthRangeList[_monthViewCurrentPage.value].firstDay,
-                      onPressed: _handleTodayPressed,
-                      dateStyle: widget.headerStyle,
-                      todayStyle: widget.todayStyle,
-                      child: widget.showNavigationArrows
-                          ? Row(
-                              children: [
-                                IconButton(
-                                  iconSize: 16,
-                                  padding: EdgeInsets.zero,
-                                  visualDensity: VisualDensity.compact,
-                                  icon: const Icon(Icons.arrow_back_ios),
-                                  onPressed: _handlePrevPressed,
-                                ),
-                                IconButton(
-                                  iconSize: 16,
-                                  padding: EdgeInsets.zero,
-                                  visualDensity: VisualDensity.compact,
-                                  icon: const Icon(Icons.arrow_forward_ios),
-                                  onPressed: _handleNextPressed,
-                                ),
-                              ],
-                            )
-                          : null,
-                    );
-                  },
-                ),
-                WeekDays(
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.hintColor,
-                  ),
-                  keepLineSize: widget.keepLineSize,
-                  weekNames: _weekNames != null
-                      ? _weekNames!
-                      : const <String>['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-                ),
-                AnimatedBuilder(
+                        _animationController.value =
+                            _animationValue + diffY / (widget.weekLineHeight * 5);
+                      },
+                onVerticalDragEnd: widget.disableScroll
+                    ? null
+                    : (details) => _handleFinishDrag(),
+                onVerticalDragCancel: widget.disableScroll
+                    ? null
+                    : _handleFinishDrag,
+                child: _buildCalendarContent(),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildCalendarContent() {
+    final theme = Theme.of(context);
+    return Container(
+      color: Colors.transparent,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ValueListenableBuilder<int>(
+            valueListenable: _monthViewCurrentPage,
+            builder: (_, value, __) {
+              return Header(
+                monthDate:
+                    _monthRangeList[_monthViewCurrentPage.value].firstDay,
+                onPressed: _handleTodayPressed,
+                dateStyle: widget.headerStyle,
+                todayStyle: widget.todayStyle,
+                child: widget.showNavigationArrows
+                    ? Row(
+                        children: [
+                          IconButton(
+                            iconSize: 16.sp,
+                            padding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.arrow_back_ios),
+                            onPressed: _handlePrevPressed,
+                          ),
+                          IconButton(
+                            iconSize: 16.sp,
+                            padding: EdgeInsets.zero,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.arrow_forward_ios),
+                            onPressed: _handleNextPressed,
+                          ),
+                        ],
+                      )
+                    : null,
+              );
+            },
+          ),
+          WeekDays(
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.hintColor,
+            ),
+            keepLineSize: widget.keepLineSize,
+            weekNames: _weekNames != null
+                ? _weekNames!
+                : const <String>['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+          ),
+          widget.disableScroll
+              ? _buildWeekViewOnly()
+              : AnimatedBuilder(
                   animation: _animationController,
                   builder: (_, __) {
                     final height = Tween<double>(
@@ -280,6 +314,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                             widget.weeksInMonthViewAmount,
                                         onChanged: _handleDateChanged,
                                         events: widget.events,
+                                        eventMap: widget.eventMap,
                                         keepLineSize: widget.keepLineSize,
                                         textStyle: widget.calendarTextStyle,
                                       );
@@ -344,6 +379,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                                 onChanged:
                                                     _handleWeekDateChanged,
                                                 events: widget.events,
+                                                eventMap: widget.eventMap,
                                                 keepLineSize:
                                                     widget.keepLineSize,
                                                 textStyle:
@@ -364,16 +400,57 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                     );
                   },
                 ),
-                HandleBar(
-                  onPressed: () async {
-                    await _animationController.forward();
-                    _animationValue = 1.0;
-                  },
-                ),
-              ],
+          if (widget.showHandleBar && !widget.disableScroll)
+            HandleBar(
+              onPressed: () async {
+                await _animationController.forward();
+                _animationValue = 1.0;
+              },
             ),
-          ),
-        ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeekViewOnly() {
+    return SizedBox(
+      height: widget.weekLineHeight,
+      child: ValueListenableBuilder<DateTime>(
+        valueListenable: _controller,
+        builder: (_, selectedDate, __) {
+          return PageView.builder(
+            onPageChanged: (indexPage) {
+              final pageIndex = _monthRangeList.indexWhere(
+                (index) =>
+                    index.firstDay.month ==
+                    _weekRangeList[indexPage].first.month,
+              );
+
+              if (widget.onHorizontalDrag != null) {
+                widget.onHorizontalDrag!(
+                  _monthRangeList[pageIndex].firstDay,
+                );
+              }
+              _monthViewCurrentPage.value = pageIndex;
+            },
+            controller: _weekPageController,
+            itemCount: _weekRangeList.length,
+            physics: _closeMonthScroll(),
+            itemBuilder: (context, index) {
+              return WeekView(
+                innerDot: widget.innerDot,
+                dates: _weekRangeList[index],
+                selectedDate: selectedDate,
+                lineHeight: widget.weekLineHeight,
+                onChanged: _handleWeekDateChanged,
+                events: widget.events,
+                eventMap: widget.eventMap,
+                keepLineSize: widget.keepLineSize,
+                textStyle: widget.calendarTextStyle,
+              );
+            },
+          );
+        },
       ),
     );
   }
