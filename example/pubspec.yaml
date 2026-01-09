@@ -12,6 +12,7 @@ dependencies:
 
   flutter_advanced_calendar:
     path: ../
+  flutter_localization: ^0.3.3
   flutter_screenutil: ^5.9.0
 
 flutter:

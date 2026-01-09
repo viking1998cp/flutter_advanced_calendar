@@ -1,31 +1,50 @@
-import 'package:flutter/material.dart';
-
-/// Calendar event data model
-class CalendarEvent {
-  const CalendarEvent({
-    required this.type,
-    required this.quantity,
+class CalendarModel {
+  const CalendarModel({
+    this.returned,
+    this.done,
+    this.overdue,
   });
 
-  /// Event type: 'GĐCT' or 'GĐHT'
-  final String type;
+  factory CalendarModel.fromJson(Map<String, dynamic> json) {
+    return CalendarModel(
+      returned: json['returned'] != null ? CalendarValueModel.fromJson(json['returned']) : null,
+      done: json['done'] != null ? CalendarValueModel.fromJson(json['done']) : null,
+      overdue: json['overdue'] != null ? CalendarValueModel.fromJson(json['overdue']) : null,
+    );
+  }
 
-  /// Event quantity/number
-  final int quantity;
+  final CalendarValueModel? returned;
+  final CalendarValueModel? done;
+  final CalendarValueModel? overdue;
 
-  /// Get display text (e.g., "GĐCT 1", "GĐHT 2")
-  String get displayText => '$type $quantity';
-
-  /// Get color based on type
-  Color get color {
-    switch (type) {
-      case 'GĐCT':
-        return const Color(0xFF2196F3); // Blue
-      case 'GĐHT':
-        return const Color(0xFFFF9800); // Orange
-      default:
-        return Colors.grey;
-    }
+  Map<String, dynamic> toJson() {
+    return {
+      'returned': returned?.toJson(),
+      'done': done?.toJson(),
+      'overdue': overdue?.toJson(),
+    };
   }
 }
 
+class CalendarValueModel {
+  const CalendarValueModel({
+    this.count,
+    this.bgColor,
+  });
+
+  factory CalendarValueModel.fromJson(Map<String, dynamic> json) {
+    return CalendarValueModel(
+      count: json['count'],
+      bgColor: json['bg_color'],
+    );
+  }
+  final int? count;
+  final String? bgColor;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'count': count,
+      'bg_color': bgColor,
+    };
+  }
+}

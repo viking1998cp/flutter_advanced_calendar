@@ -2,7 +2,7 @@ part of 'widget.dart';
 
 class MonthView extends StatelessWidget {
   const MonthView({
-    Key? key,
+    super.key,
     required this.monthView,
     required this.todayDate,
     required this.selectedDate,
@@ -14,7 +14,7 @@ class MonthView extends StatelessWidget {
     this.eventMap,
     required this.keepLineSize,
     this.textStyle,
-  }) : super(key: key);
+  });
 
   final ViewRange monthView;
   final DateTime? todayDate;
@@ -23,7 +23,7 @@ class MonthView extends StatelessWidget {
   final int weeksAmount;
   final ValueChanged<DateTime>? onChanged;
   final List<DateTime>? events;
-  final Map<DateTime, List<CalendarEvent>>? eventMap;
+  final Map<DateTime, CalendarModel>? eventMap;
   final bool innerDot;
   final bool keepLineSize;
   final TextStyle? textStyle;
@@ -43,7 +43,6 @@ class MonthView extends StatelessWidget {
           6,
           (weekIndex) {
             final weekStart = weekIndex * 7;
-
             return WeekView(
               innerDot: innerDot,
               dates: monthView.dates.sublist(weekStart, weekStart + 7),

@@ -3,12 +3,11 @@ part of 'widget.dart';
 /// Week day names line.
 class WeekDays extends StatelessWidget {
   const WeekDays({
-    Key? key,
-    this.weekNames = const <String>['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+    super.key,
+    this.weekNames = const <String>['THỨ 2', 'THỨ 3', 'THỨ 4', 'THỨ 5', 'THỨ 6', 'THỨ 7', 'CN'],
     this.style,
     required this.keepLineSize,
-  })  : assert(weekNames.length == 7, '`weekNames` must have length 7'),
-        super(key: key);
+  }) : assert(weekNames.length == 7, '`weekNames` must have length 7');
 
   /// Week day names.
   final List<String> weekNames;
@@ -20,42 +19,39 @@ class WeekDays extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Vietnamese day names
-    final vietnameseDays = ['HAI', 'BA', 'TƯ', 'NĂM', 'SÁU', 'BẢY', 'CN'];
-    
     return Row(
       mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: List.generate(weekNames.length, (index) {
-        final isSunday = index == 6; // CN is Sunday
-        return Expanded(
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 2.h),
-            decoration: BoxDecoration(
-              color: isSunday ? const Color(0xFFFFE5E5) : Colors.blue[50],
-              // borderRadius: BorderRadius.circular(4.r),
-            ),
-            child: Center(
+      children: List.generate(
+        weekNames.length,
+        (index) {
+          final isSunday = index == 6;
+          return Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 8.h),
+              decoration: BoxDecoration(
+                color: isSunday ? const Color(0xFFfef2f2) : const Color(0xffeff6ff),
+                // borderRadius: const BorderRadius.vertical(
+                //   top: Radius.circular(8),
+                // ).r,
+              ),
               child: Text(
-                vietnameseDays[index],
+                weekNames[index],
                 style: style?.copyWith(
-                  color: isSunday 
-                      ? Colors.red 
-                      : const Color(0xFF2196F3), // Blue for other days
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13.sp,
-                ) ?? TextStyle(
-                  color: isSunday 
-                      ? Colors.red 
-                      : const Color(0xFF2196F3),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13.sp,
-                ),
+                      color: isSunday ? const Color(0xffef4444) : const Color(0xFF3b82f6), // Blue for other days
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12.sp,
+                    ) ??
+                    TextStyle(
+                      color: isSunday ? const Color(0xffef4444) : const Color(0xFF3b82f6),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12.sp,
+                    ),
+                textAlign: TextAlign.center,
               ),
             ),
-          ),
-        );
-      }),
+          );
+        },
+      ),
     );
   }
 }
