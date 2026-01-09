@@ -27,12 +27,16 @@ class WeekDays extends StatelessWidget {
           final isSunday = index == 6;
           return Expanded(
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 8.h),
+              margin: EdgeInsets.only(
+                left: index == 0 ? 0 : 2.w,
+                right: index == 7 ? 0 : 2.w,
+              ),
+              padding: EdgeInsets.symmetric(vertical: 5.5).r,
               decoration: BoxDecoration(
                 color: isSunday ? const Color(0xFFfef2f2) : const Color(0xffeff6ff),
-                // borderRadius: const BorderRadius.vertical(
-                //   top: Radius.circular(8),
-                // ).r,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(8),
+                ).r,
               ),
               child: Text(
                 weekNames[index],

@@ -257,7 +257,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                           child: Text(
                             "${DateFormat("dd 'thg' MM", "vi").format(firstWeek)} - ${DateFormat("dd 'thg' MM", "vi").format(lastWeek)}",
                             style: TextStyle(
-                              fontSize: 12.sp,
+                              fontSize: 10.sp,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -278,13 +278,14 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
             );
           },
         ),
-        8.verticalSpace,
+        12.verticalSpace,
         WeekDays(
           style: theme.textTheme.bodyLarge?.copyWith(
             color: theme.hintColor,
           ),
           keepLineSize: widget.keepLineSize,
         ),
+        4.verticalSpace,
         widget.disableScroll
             ? _buildWeekViewOnly()
             : AnimatedBuilder(
@@ -306,8 +307,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                               ignoring: _animationController.value == 0.0,
                               child: Opacity(
                                 opacity: Tween<double>(
-                                  begin: 0.0,
-                                  end: 1.0,
+                                  begin: 0,
+                                  end: 1,
                                 ).evaluate(_animationController),
                                 child: PageView.builder(
                                   onPageChanged: (pageIndex) {

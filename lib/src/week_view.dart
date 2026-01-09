@@ -83,139 +83,158 @@ class WeekView extends StatelessWidget {
 
             if (keepLineSize) {
               return Expanded(
-                child: InkWell(
-                  onTap: onChanged != null ? () => onChanged!(date) : null,
-                  child: Container(
-                    constraints: BoxConstraints(
-                      minHeight: 80.h,
-                      maxHeight: double.infinity,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 4,
-                      horizontal: 8,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: dayIndex == 0 ? 0 : 2.w,
+                    right: dayIndex == 7 ? 0 : 2.w,
+                  ),
+                  child: InkWell(
+                    onTap: onChanged != null ? () => onChanged!(date) : null,
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(8),
                     ).r,
-                    decoration: BoxDecoration(
-                      // borderRadius: const BorderRadius.vertical(
-                      //   bottom: Radius.circular(8),
-                      // ).r,
-                      border: isToday
-                          ? Border.all(
-                              color: const Color(0xff22c55e),
-                              width: 1.w,
-                            )
-                          : Border.all(
-                              color: const Color(0xffe5e7eb),
-                              width: 0.5.w,
-                            ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          '${date.day}',
-                          style: textStyle?.copyWith(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20.sp,
-                              ) ??
-                              TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20.sp,
+                    child: Container(
+                      constraints: BoxConstraints(
+                        minHeight: 80.h,
+                        maxHeight: double.infinity,
+                      ),
+                      padding: const EdgeInsets.all(
+                        8,
+                      ).r,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(8),
+                        ).r,
+                        border: isToday
+                            ? Border.all(
+                                color: const Color(0xff22c55e),
+                                width: 1.w,
+                              )
+                            : Border.all(
+                                color: const Color(0xffe5e7eb),
+                                width: 1.w,
                               ),
-                          textAlign: TextAlign.center,
-                        ),
-                        8.verticalSpace,
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 1,
-                          ).r,
-                          decoration: BoxDecoration(
-                            color: dateEvents.overdue?.bgColor != null && (dateEvents.overdue?.count != null && dateEvents.overdue?.count != 0)
-                                ? Color(
-                                    int.parse(
-                                      "ff${dateEvents.overdue?.bgColor?.replaceAll("#", "")}",
-                                      radix: 16,
-                                    ),
-                                  )
-                                : Colors.transparent,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(6),
-                            ).r,
-                          ),
-                          child: Text(
-                            dateEvents.overdue?.count?.toString() ?? "",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 8.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${date.day}',
+                            style: textStyle?.copyWith(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20.sp,
+                                ) ??
+                                TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20.sp,
+                                ),
                             textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        2.verticalSpace,
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: .25,
-                          ).r,
-                          decoration: BoxDecoration(
-                            color: dateEvents.returned?.bgColor != null && (dateEvents.returned?.count != null && dateEvents.returned?.count != 0)
-                                ? Color(
-                                    int.parse(
-                                      "ff${dateEvents.returned?.bgColor?.replaceAll("#", "")}",
-                                      radix: 16,
-                                    ),
-                                  )
-                                : Colors.transparent,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(6),
-                            ).r,
-                          ),
-                          child: Text(
-                            dateEvents.returned?.count?.toString() ?? "",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 8.sp,
-                              fontWeight: FontWeight.bold,
+                          8.verticalSpace,
+                          Spacer(),
+                          if (dateEvents.overdue?.count != null && dateEvents.overdue?.count != 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 1,
+                              ).r,
+                              decoration: BoxDecoration(
+                                color: dateEvents.overdue?.bgColor != null && (dateEvents.overdue?.count != null && dateEvents.overdue?.count != 0)
+                                    ? Color(
+                                        int.parse(
+                                          "ff${dateEvents.overdue?.bgColor?.replaceAll("#", "")}",
+                                          radix: 16,
+                                        ),
+                                      )
+                                    : Colors.transparent,
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(6),
+                                ).r,
+                              ),
+                              child: Text(
+                                dateEvents.overdue?.count != null && dateEvents.overdue?.count != 0 ? "${dateEvents.overdue?.count}" : "",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        2.verticalSpace,
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 1,
-                          ).r,
-                          decoration: BoxDecoration(
-                            color: dateEvents.done?.bgColor != null && (dateEvents.done?.count != null && dateEvents.done?.count != 0)
-                                ? Color(
-                                    int.parse(
-                                      "ff${dateEvents.done?.bgColor?.replaceAll("#", "")}",
-                                      radix: 16,
-                                    ),
-                                  )
-                                : Colors.transparent,
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(6),
-                            ).r,
-                          ),
-                          child: Text(
-                            dateEvents.done?.count?.toString() ?? "",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 8.sp,
-                              fontWeight: FontWeight.bold,
+                          if ((dateEvents.overdue?.count != null && dateEvents.overdue?.count != 0) &&
+                              (dateEvents.returned?.count != null && dateEvents.returned?.count != 0))
+                            2.verticalSpace,
+                          if (dateEvents.returned?.count != null && dateEvents.returned?.count != 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 1,
+                              ).r,
+                              decoration: BoxDecoration(
+                                color: dateEvents.returned?.bgColor != null && (dateEvents.returned?.count != null && dateEvents.returned?.count != 0)
+                                    ? Color(
+                                        int.parse(
+                                          "ff${dateEvents.returned?.bgColor?.replaceAll("#", "")}",
+                                          radix: 16,
+                                        ),
+                                      )
+                                    : Colors.transparent,
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(6),
+                                ).r,
+                              ),
+                              child: Text(
+                                dateEvents.returned?.count?.toString() ?? "",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                          if ((dateEvents.returned?.count != null && dateEvents.returned?.count != 0) &&
+                              (dateEvents.done?.count != null && dateEvents.done?.count != 0))
+                            2.verticalSpace,
+                          if (dateEvents.done?.count != null && dateEvents.done?.count != 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 1,
+                              ).r,
+                              decoration: BoxDecoration(
+                                color: dateEvents.done?.bgColor != null && (dateEvents.done?.count != null && dateEvents.done?.count != 0)
+                                    ? Color(
+                                        int.parse(
+                                          "ff${dateEvents.done?.bgColor?.replaceAll("#", "")}",
+                                          radix: 16,
+                                        ),
+                                      )
+                                    : Colors.transparent,
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(6),
+                                ).r,
+                              ),
+                              child: Text(
+                                dateEvents.done?.count?.toString() ?? "",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          Spacer(),
+                        ],
+                      ),
                     ),
                   ),
                 ),

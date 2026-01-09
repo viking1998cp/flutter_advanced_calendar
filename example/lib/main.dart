@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       // Example: Tomorrow has 2 events (GĐCT and GĐHT)
-      DateTime.utc(now.year, now.month, now.day + 1): const CalendarModel(
+      DateTime.utc(now.year, now.month, now.day + 1, 12): const CalendarModel(
         returned: CalendarValueModel(
           count: 5,
           bgColor: "#FFA726",
@@ -50,18 +50,18 @@ class _MyAppState extends State<MyApp> {
           bgColor: "#4CAF50",
         ),
         overdue: CalendarValueModel(
-          count: 0,
+          count: 1,
           bgColor: "#F44336",
         ),
       ),
       // Example: Day after tomorrow has 2 events
-      DateTime.utc(now.year, now.month, now.day + 2): const CalendarModel(
+      DateTime.utc(now.year, now.month, now.day + 2, 12): const CalendarModel(
         returned: CalendarValueModel(
           count: 5,
           bgColor: "#FFA726",
         ),
         done: CalendarValueModel(
-          count: 1,
+          count: 0,
           bgColor: "#4CAF50",
         ),
         overdue: CalendarValueModel(
@@ -114,7 +114,7 @@ class _MyAppState extends State<MyApp> {
                   controller: _calendarControllerToday,
                   eventMap: eventMap,
                   startWeekDay: 1,
-                  weekLineHeight: 95.h,
+                  weekLineHeight: 100.h,
                   innerDot: true,
                   keepLineSize: true,
                   getFirstAndLastWeek: (first, last) {},

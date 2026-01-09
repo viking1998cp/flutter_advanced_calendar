@@ -13,7 +13,6 @@ class Header extends StatelessWidget {
     this.showToday = true,
   });
 
-  static final _dateFormatter = DateFormat("T'h'áng M nă'm' yyyy", 'vi');
   final DateTime monthDate;
   final EdgeInsetsGeometry? margin;
   final VoidCallback? onPressed;
@@ -26,14 +25,12 @@ class Header extends StatelessWidget {
   final Widget? title;
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Row(
       children: [
         if (title != null) title!,
         const Spacer(),
         if (child != null) child!,
-        if (child != null && showToday == true) 8.horizontalSpace,
+        if (child != null && showToday == true) 4.horizontalSpace,
         if (showToday == true)
           InkWell(
             onTap: onPressed,
@@ -48,8 +45,8 @@ class Header extends StatelessWidget {
                 'H.nay',
                 style: todayStyle ??
                     TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
                     ),
               ),
             ),
