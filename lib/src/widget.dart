@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_advanced_calendar/src/calendar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
@@ -123,6 +124,9 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
   List<String>? _weekNames;
   DateTime firstWeek = DateTime.now();
   DateTime lastWeek = DateTime.now();
+  final GlobalKey _datePickerKey = GlobalKey();
+  OverlayEntry? _overlayEntry;
+  bool _isDropdownOpen = false;
 
   @override
   void initState() {
@@ -252,8 +256,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                           ),
                         ),
                         InkWell(
-                          // key: _datePickerKey,
-                          // onTap: handleSelectWeekInCalendar,
+                          key: _datePickerKey,
+                          onTap: handleSelectWeekInCalendar,
                           child: Text(
                             "${DateFormat("dd 'thg' MM", "vi").format(firstWeek)} - ${DateFormat("dd 'thg' MM", "vi").format(lastWeek)}",
                             style: TextStyle(
@@ -449,7 +453,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
             },
             controller: _weekPageController,
             itemCount: _weekRangeList.length,
-            // physics: _closeMonthScroll(),
             itemBuilder: (context, index) {
               return WeekView(
                 innerDot: widget.innerDot,
@@ -508,10 +511,19 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
   }
 
   void _handleTodayPressed() {
-    _controller.value = DateTime.now().toZeroTime();
-
-    _monthPageController!.jumpToPage(widget.preloadMonthViewAmount ~/ 2);
-    _weekPageController!.jumpToPage(widget.preloadWeekViewAmount ~/ 2);
+    _controller.value = DateTime.now();
+    firstWeek = getFirstWeek(date: DateTime.now().toZeroTime());
+    lastWeek = getLastWeek(date: DateTime.now().toZeroTime());
+    widget.getFirstAndLastWeek.call(
+      firstWeek,
+      lastWeek,
+    );
+    currentPageWeek = _weekPageController?.initialPage ?? 10;
+    _weekRangeList = _controller.value.generateWeeks(
+      widget.preloadWeekViewAmount,
+      startWeekDay: widget.startWeekDay,
+    );
+    setState(() {});
   }
 
   void _handlePrevPressed() {
@@ -613,5 +625,87 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
         break;
     }
     return DateTime(now.year, now.month, now.day + number);
+  }
+
+  void handleSelectWeekInCalendar() {
+    // if (widget.weekDates == null || widget.weekDates!.isEmpty) return;
+
+    if (_isDropdownOpen) {
+      _closeDropdown();
+      return;
+    }
+
+    final RenderBox? renderBox = _datePickerKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final size = renderBox.size;
+    final offset = renderBox.localToGlobal(Offset.zero);
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final dropdownWidth = 300.w;
+    double leftPosition = offset.dx;
+
+    if (leftPosition + dropdownWidth > screenWidth) {
+      leftPosition = screenWidth - dropdownWidth - 16.w;
+    }
+    if (leftPosition < 0) {
+      leftPosition = 16.w;
+    }
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => GestureDetector(
+        onTap: _closeDropdown,
+        child: ColoredBox(
+          color: Colors.transparent,
+          child: Stack(
+            children: [
+              Positioned(
+                left: leftPosition,
+                top: offset.dy + size.height + 4.h,
+                child: Material(
+                  elevation: 8,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(12),
+                  ).r,
+                  color: Colors.white,
+                  child: DatePickerDropdown(
+                    initialDate: firstWeek,
+                    startWeekDay: 1,
+                    onDateSelected: (date) {
+                      _controller.value = date;
+                      firstWeek = getFirstWeek(date: date);
+                      lastWeek = getLastWeek(date: date);
+                      widget.getFirstAndLastWeek.call(
+                        firstWeek,
+                        lastWeek,
+                      );
+                      _closeDropdown();
+                      currentPageWeek = _weekPageController?.initialPage ?? 10;
+                      _weekRangeList = _controller.value.generateWeeks(
+                        widget.preloadWeekViewAmount,
+                        startWeekDay: widget.startWeekDay,
+                      );
+                      setState(() {});
+                    },
+                    onClose: _closeDropdown,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+    _isDropdownOpen = true;
+  }
+
+  void _closeDropdown() {
+    if (_overlayEntry != null) {
+      _overlayEntry!.remove();
+      _overlayEntry = null;
+      _isDropdownOpen = false;
+    }
   }
 }
