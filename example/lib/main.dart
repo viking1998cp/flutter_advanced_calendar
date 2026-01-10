@@ -21,7 +21,7 @@ class _MyAppState extends State<MyApp> {
   Map<DateTime, CalendarModel> get eventMap {
     final now = DateTime.now();
     // Use UTC with hour 12 to match toZeroTime() behavior
-    final today = DateTime.utc(now.year, now.month, now.day, 12);
+    final today = DateTime(now.year, now.month, now.day).toLocal();
 
     return {
       // Example: Today has 1 GĐCT event
@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       // Example: Tomorrow has 2 events (GĐCT and GĐHT)
-      DateTime.utc(now.year, now.month, now.day + 1, 12): const CalendarModel(
+      DateTime(now.year, now.month, now.day + 1).toLocal(): const CalendarModel(
         returned: CalendarValueModel(
           count: 5,
           bgColor: "#FFA726",
@@ -55,7 +55,7 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       // Example: Day after tomorrow has 2 events
-      DateTime.utc(now.year, now.month, now.day + 2, 12): const CalendarModel(
+      DateTime(now.year, now.month, now.day + 2).toLocal(): const CalendarModel(
         returned: CalendarValueModel(
           count: 5,
           bgColor: "#FFA726",
@@ -113,6 +113,7 @@ class _MyAppState extends State<MyApp> {
                   showHandleBar: false,
                   controller: _calendarControllerToday,
                   eventMap: eventMap,
+                  preloadMonthViewAmount: 23,
                   startWeekDay: 1,
                   weekLineHeight: 100.h,
                   innerDot: true,

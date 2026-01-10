@@ -1,6 +1,6 @@
 extension DateTimeUtil on DateTime {
   /// Generate a new DateTime instance with a zero time.
-  DateTime toZeroTime() => DateTime.utc(year, month, day, 12);
+  DateTime toZeroTime() => DateTime(year, month, day).toLocal();
 
   int findWeekIndex(List<DateTime> dates) {
     return dates.indexWhere(isAtSameMomentAs) ~/ 7;
@@ -8,11 +8,11 @@ extension DateTimeUtil on DateTime {
 
   /// Calculates first week date (Sunday) from this date.
   DateTime firstDayOfWeek({int? startWeekDay}) {
-    final utcDate = DateTime.utc(year, month, day, 12);
+    final localDate = DateTime(year, month, day).toLocal();
     if (startWeekDay != null && startWeekDay < 7) {
-      return utcDate.subtract(Duration(days: utcDate.weekday - startWeekDay));
+      return localDate.subtract(Duration(days: localDate.weekday - startWeekDay));
     }
-    return utcDate.subtract(Duration(days: utcDate.weekday % 7));
+    return localDate.subtract(Duration(days: localDate.weekday % 7));
   }
 
   /// Generates 7 dates according to this date.

@@ -121,17 +121,21 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
   PageController? _weekPageController;
   Offset? _captureOffset;
   DateTime? _todayDate;
-  List<String>? _weekNames;
-  DateTime firstWeek = DateTime.now();
-  DateTime lastWeek = DateTime.now();
+  DateTime firstWeek = DateTime.now().toZeroTime();
+  DateTime lastWeek = DateTime.now().toZeroTime();
   final GlobalKey _datePickerKey = GlobalKey();
   OverlayEntry? _overlayEntry;
   bool _isDropdownOpen = false;
+  bool isPressToday = false;
 
   @override
   void initState() {
     super.initState();
-
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      value: 0,
+    );
     final monthPageIndex = widget.preloadMonthViewAmount ~/ 2;
 
     _monthViewCurrentPage = ValueNotifier(monthPageIndex);
@@ -145,13 +149,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
       initialPage: weekPageIndex,
     );
     currentPageWeek = weekPageIndex;
-
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-      value: 0,
-    );
-
     _animationValue = _animationController.value;
 
     _controller = widget.controller ?? AdvancedCalendarController.today();
@@ -178,18 +175,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
       );
       _weekPageController!.jumpToPage(widget.preloadWeekViewAmount ~/ 2);
     });
-    if (widget.startWeekDay != null && widget.startWeekDay! < 7) {
-      final time = _controller.value.subtract(
-        Duration(days: _controller.value.weekday - widget.startWeekDay!),
-      );
-      final list = List<DateTime>.generate(
-        8,
-        (index) => time.add(Duration(days: index * 1)),
-      ).toList();
-      _weekNames = List<String>.generate(7, (index) {
-        return DateFormat("EEEE").format(list[index]).split('').first;
-      });
-    }
     firstWeek = getFirstWeek();
     lastWeek = getLastWeek();
   }
@@ -359,8 +344,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                                     ignoring: _animationController.value == 1.0,
                                     child: Opacity(
                                       opacity: Tween<double>(
-                                        begin: 1.0,
-                                        end: 0.0,
+                                        begin: 1,
+                                        end: 0,
                                       ).evaluate(_animationController),
                                       child: SizedBox(
                                         height: widget.weekLineHeight,
@@ -434,21 +419,21 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                   _monthRangeList[pageIndex].firstDay,
                 );
               }
-              if (currentPageWeek > indexPage || _monthViewCurrentPage.value > pageIndex) {
-                final dateBack = DateTime(firstWeek.year, firstWeek.month, firstWeek.day - 1);
-                firstWeek = getFirstWeek(date: dateBack);
-                lastWeek = getLastWeek(date: dateBack);
-              } else {
-                final dateNext = DateTime(lastWeek.year, lastWeek.month, lastWeek.day + 1);
-                firstWeek = getFirstWeek(date: dateNext);
-                lastWeek = getLastWeek(date: dateNext);
+              if (!isPressToday) {
+                if (currentPageWeek > indexPage || _monthViewCurrentPage.value > pageIndex) {
+                  final dateBack = DateTime(firstWeek.year, firstWeek.month, firstWeek.day - 1);
+                  firstWeek = getFirstWeek(date: dateBack);
+                  lastWeek = getLastWeek(date: dateBack);
+                } else {
+                  final dateNext = DateTime(lastWeek.year, lastWeek.month, lastWeek.day + 1);
+                  firstWeek = getFirstWeek(date: dateNext);
+                  lastWeek = getLastWeek(date: dateNext);
+                }
               }
+              if (isPressToday) isPressToday = false;
               _monthViewCurrentPage.value = pageIndex;
               currentPageWeek = indexPage;
-              widget.getFirstAndLastWeek.call(
-                firstWeek,
-                lastWeek,
-              );
+              widget.getFirstAndLastWeek.call(firstWeek, lastWeek);
               setState(() {});
             },
             controller: _weekPageController,
@@ -511,19 +496,16 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
   }
 
   void _handleTodayPressed() {
-    _controller.value = DateTime.now();
-    firstWeek = getFirstWeek(date: DateTime.now().toZeroTime());
-    lastWeek = getLastWeek(date: DateTime.now().toZeroTime());
-    widget.getFirstAndLastWeek.call(
-      firstWeek,
-      lastWeek,
-    );
-    currentPageWeek = _weekPageController?.initialPage ?? 10;
+    isPressToday = true;
+    _controller.value = DateTime.now().toZeroTime();
+    firstWeek = getFirstWeek();
+    lastWeek = getLastWeek();
+    widget.getFirstAndLastWeek.call(firstWeek, lastWeek);
     _weekRangeList = _controller.value.generateWeeks(
       widget.preloadWeekViewAmount,
       startWeekDay: widget.startWeekDay,
     );
-    setState(() {});
+    _weekPageController!.jumpToPage(widget.preloadWeekViewAmount ~/ 2);
   }
 
   void _handlePrevPressed() {
@@ -567,8 +549,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
     }
   }
 
-  static DateTime getFirstWeek({DateTime? date}) {
-    final now = date ?? DateTime.now();
+  DateTime getFirstWeek({DateTime? date}) {
+    final now = date ?? DateTime.now().toZeroTime();
     final format = DateFormat("EEEE", "vi").format(now);
     int number = 0;
     switch (format) {
@@ -597,8 +579,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
     return DateTime(now.year, now.month, now.day - number);
   }
 
-  static DateTime getLastWeek({DateTime? date}) {
-    final now = date ?? DateTime.now();
+  DateTime getLastWeek({DateTime? date}) {
+    final now = date ?? DateTime.now().toZeroTime();
     final format = DateFormat("EEEE", "vi").format(now);
     int number = 0;
     switch (format) {
@@ -675,10 +657,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                       _controller.value = date;
                       firstWeek = getFirstWeek(date: date);
                       lastWeek = getLastWeek(date: date);
-                      widget.getFirstAndLastWeek.call(
-                        firstWeek,
-                        lastWeek,
-                      );
+                      widget.getFirstAndLastWeek.call(firstWeek, lastWeek);
                       _closeDropdown();
                       currentPageWeek = _weekPageController?.initialPage ?? 10;
                       _weekRangeList = _controller.value.generateWeeks(
