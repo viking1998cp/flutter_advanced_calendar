@@ -7,6 +7,7 @@ class Header extends StatelessWidget {
     this.margin,
     this.onPressed,
     this.dateStyle,
+    this.titleToday,
     this.todayStyle,
     this.child,
     this.title,
@@ -17,6 +18,7 @@ class Header extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final VoidCallback? onPressed;
   final TextStyle? dateStyle;
+  final String? titleToday;
   final TextStyle? todayStyle;
   final bool showToday;
 
@@ -42,7 +44,7 @@ class Header extends StatelessWidget {
                 horizontal: 4,
               ).r,
               child: Text(
-                'H.nay',
+                titleToday ?? 'Today',
                 style: todayStyle ??
                     TextStyle(
                       fontSize: 12.sp,

@@ -27,6 +27,7 @@ class AdvancedCalendar extends StatefulWidget {
     this.preloadMonthViewAmount = 13,
     this.preloadWeekViewAmount = 21,
     this.weeksInMonthViewAmount = 6,
+    this.titleToday,
     this.todayStyle,
     this.headerStyle,
     this.onHorizontalDrag,
@@ -74,6 +75,8 @@ class AdvancedCalendar extends StatefulWidget {
 
   /// Style of headers date
   final TextStyle? headerStyle;
+
+  final String? titleToday;
 
   /// Style of Today button
   final TextStyle? todayStyle;
@@ -222,6 +225,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
           builder: (_, value, __) {
             return Header(
               title: widget.title,
+              titleToday: widget.titleToday,
               monthDate: _monthRangeList[_monthViewCurrentPage.value].firstDay,
               onPressed: _handleTodayPressed,
               dateStyle: widget.headerStyle,
