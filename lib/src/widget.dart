@@ -459,17 +459,10 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                 );
               }
               if (!isPressToday) {
-                if (currentPageWeek > indexPage ||
-                    _monthViewCurrentPage.value > pageIndex) {
-                  final dateBack = DateTime(
-                      firstWeek.year, firstWeek.month, firstWeek.day - 1);
-                  firstWeek = getFirstWeek(date: dateBack);
-                  lastWeek = getLastWeek(date: dateBack);
-                } else {
-                  final dateNext =
-                      DateTime(lastWeek.year, lastWeek.month, lastWeek.day + 1);
-                  firstWeek = getFirstWeek(date: dateNext);
-                  lastWeek = getLastWeek(date: dateNext);
+                final currentWeek = _weekRangeList[indexPage];
+                if (currentWeek.isNotEmpty) {
+                  firstWeek = currentWeek.first.toZeroTime();
+                  lastWeek = currentWeek.last.toZeroTime();
                 }
               }
               if (isPressToday) isPressToday = false;
