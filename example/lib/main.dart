@@ -15,13 +15,13 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _calendarControllerToday = AdvancedCalendarController.today();
-  
+
   // Example event map with GĐCT and GĐHT events
   Map<DateTime, List<CalendarEvent>> get eventMap {
     final now = DateTime.now();
     // Use UTC with hour 12 to match toZeroTime() behavior
-    final today = DateTime.utc(now.year, now.month, now.day, 12);
-    
+    final today = DateTime.utc(now.year, now.month, now.day);
+
     return {
       // Example: Today has 1 GĐCT event
       today: [
@@ -39,7 +39,6 @@ class _MyAppState extends State<MyApp> {
       ],
     };
   }
-
 
   @override
   void initState() {
@@ -71,13 +70,13 @@ class _MyAppState extends State<MyApp> {
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: AdvancedCalendar(
-                      showNavigationArrows: false ,
+                      showNavigationArrows: false,
                       disableScroll: true,
                       showHandleBar: false,
                       controller: _calendarControllerToday,
                       eventMap: eventMap,
                       startWeekDay: 1,
-                      weekLineHeight: 72.h,
+                      weekLineHeight: 80.h,
                       innerDot: true,
                       keepLineSize: true,
                       calendarTextStyle: TextStyle(

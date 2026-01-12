@@ -31,7 +31,7 @@ class WeekView extends StatelessWidget {
   List<Widget> _getEventIcons(DateTime date, bool isSelected) {
     final icons = <Widget>[];
     final dayOfMonth = date.day;
-    
+
     // Example: Add different icons for different dates (based on image)
     if (dayOfMonth == 11) {
       // Red bookmark icon (top-right)
@@ -58,14 +58,17 @@ class WeekView extends StatelessWidget {
         ),
       );
     }
-    
+
     return icons;
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: lineHeight,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: lineHeight,
+        maxHeight: keepLineSize ? double.infinity : lineHeight,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -77,11 +80,11 @@ class WeekView extends StatelessWidget {
             final isToday = date.isAtSameMomentAs(todayDate);
             final isSelected = date.isAtSameMomentAs(selectedDate);
 
-            final hasEvent = events != null && 
+            final hasEvent = events != null &&
                 events!.any((element) => element.isSameDate(date));
-            
+
             // Get calendar events for this date
-            final dateEvents = eventMap != null 
+            final dateEvents = eventMap != null
                 ? eventMap!.entries
                     .where((entry) {
                       final entryDate = entry.key.toZeroTime();
@@ -91,7 +94,7 @@ class WeekView extends StatelessWidget {
                     .expand((entry) => entry.value)
                     .toList()
                 : <CalendarEvent>[];
-            
+
             final eventIcons = _getEventIcons(date, isSelected);
 
             if (keepLineSize) {
@@ -101,13 +104,13 @@ class WeekView extends StatelessWidget {
                   child: InkResponse(
                     onTap: onChanged != null ? () => onChanged!(date) : null,
                     child: Container(
-                      // height: dateEvents.isNotEmpty ? null : 56.h,
+                      alignment: Alignment.topCenter,
                       constraints: BoxConstraints(
                         minHeight: 80.h,
                         maxHeight: double.infinity,
                       ),
                       padding: EdgeInsets.symmetric(
-                        vertical: 4.h,
+                        // vertical: 4.h,
                         horizontal: 2.w,
                       ),
                       decoration: BoxDecoration(
@@ -116,7 +119,7 @@ class WeekView extends StatelessWidget {
                         border: isSelected
                             ? Border.all(
                                 color: Colors.green,
-                                width: 1.w,
+                                width: 0.5.w,
                               )
                             : Border.all(
                                 color: Colors.grey[200]!,
@@ -144,52 +147,58 @@ class WeekView extends StatelessWidget {
                               child: Text(
                                 '${date.day}',
                                 style: textStyle?.copyWith(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.sp,
-                                ) ?? TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14.sp,
-                                ),
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14.sp,
+                                    ) ??
+                                    TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14.sp,
+                                    ),
                               ),
                             ),
                           ),
                           // Event buttons or placeholder
                           if (dateEvents.isNotEmpty) ...[
-                            SizedBox(height: 2.h),
+                            // SizedBox(height: 2.h),
                             Flexible(
+                              fit: FlexFit.loose,
                               child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                children: dateEvents.map((event) => Padding(
-                                  padding: EdgeInsets.only(bottom: 2.h),
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 2.h,
-                                      horizontal: 3.w,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: event.color,
-                                      borderRadius: BorderRadius.circular(6.r),
-                                    ),
-                                    child: Text(
-                                      event.displayText,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 6.sp,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                )).toList(),
+                                mainAxisSize: MainAxisSize.min,
+                                children: dateEvents
+                                    .take(4)
+                                    .map((event) => Padding(
+                                          padding: EdgeInsets.only(bottom: 2.h),
+                                          child: Container(
+                                            width: double.infinity,
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: 2.h,
+                                              horizontal: 3.w,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: event.color,
+                                              borderRadius:
+                                                  BorderRadius.circular(6.r),
+                                            ),
+                                            child: Text(
+                                              event.displayText,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 6.sp,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
                               ),
                             ),
                           ] else ...[
-                            SizedBox(height: 2.h),
+                            // SizedBox(height: 2.h),
                             // Placeholder icon for empty days - small empty icon
                             Flexible(
                               child: Center(

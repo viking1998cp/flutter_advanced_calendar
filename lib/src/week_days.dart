@@ -22,7 +22,7 @@ class WeekDays extends StatelessWidget {
   Widget build(BuildContext context) {
     // Vietnamese day names
     final vietnameseDays = ['HAI', 'BA', 'TƯ', 'NĂM', 'SÁU', 'BẢY', 'CN'];
-    
+
     return Row(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -39,18 +39,17 @@ class WeekDays extends StatelessWidget {
               child: Text(
                 vietnameseDays[index],
                 style: style?.copyWith(
-                  color: isSunday 
-                      ? Colors.red 
-                      : const Color(0xFF2196F3), // Blue for other days
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13.sp,
-                ) ?? TextStyle(
-                  color: isSunday 
-                      ? Colors.red 
-                      : const Color(0xFF2196F3),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13.sp,
-                ),
+                      color: isSunday
+                          ? Colors.red
+                          : const Color(0xFF2196F3), // Blue for other days
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13.sp,
+                    ) ??
+                    TextStyle(
+                      color: isSunday ? Colors.red : const Color(0xFF2196F3),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13.sp,
+                    ),
               ),
             ),
           ),

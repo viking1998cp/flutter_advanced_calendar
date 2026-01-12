@@ -102,6 +102,7 @@ class AdvancedCalendar extends StatefulWidget {
 class _AdvancedCalendarState extends State<AdvancedCalendar>
     with SingleTickerProviderStateMixin {
   late ValueNotifier<int> _monthViewCurrentPage;
+  late ValueNotifier<int> _weekViewCurrentPage;
   late AnimationController _animationController;
   late AdvancedCalendarController _controller;
   late double _animationValue;
@@ -113,6 +114,9 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
   Offset? _captureOffset;
   DateTime? _todayDate;
   List<String>? _weekNames;
+
+  bool _showGDHT = true;
+  bool _showGDCT = true;
 
   @override
   void initState() {
@@ -127,6 +131,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
     );
 
     final weekPageIndex = widget.preloadWeekViewAmount ~/ 2;
+
+    _weekViewCurrentPage = ValueNotifier(weekPageIndex);
 
     _weekPageController = PageController(
       initialPage: weekPageIndex,
@@ -163,6 +169,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
         startWeekDay: widget.startWeekDay,
       );
       _weekPageController!.jumpToPage(widget.preloadWeekViewAmount ~/ 2);
+      _weekViewCurrentPage.value = widget.preloadWeekViewAmount ~/ 2;
     });
     if (widget.startWeekDay != null && widget.startWeekDay! < 7) {
       final time = _controller.value.subtract(
@@ -199,15 +206,14 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                         final moveOffset = details.globalPosition;
                         final diffY = moveOffset.dy - _captureOffset!.dy;
 
-                        _animationController.value =
-                            _animationValue + diffY / (widget.weekLineHeight * 5);
+                        _animationController.value = _animationValue +
+                            diffY / (widget.weekLineHeight * 5);
                       },
                 onVerticalDragEnd: widget.disableScroll
                     ? null
                     : (details) => _handleFinishDrag(),
-                onVerticalDragCancel: widget.disableScroll
-                    ? null
-                    : _handleFinishDrag,
+                onVerticalDragCancel:
+                    widget.disableScroll ? null : _handleFinishDrag,
                 child: _buildCalendarContent(),
               ),
       ),
@@ -217,21 +223,43 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
   Widget _buildCalendarContent() {
     final theme = Theme.of(context);
     return Container(
-      color: Colors.transparent,
+      // color: Colors.transparent,
+      alignment: Alignment.topCenter,
+      padding: EdgeInsets.all(8.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ValueListenableBuilder<int>(
-            valueListenable: _monthViewCurrentPage,
-            builder: (_, value, __) {
+            valueListenable: _weekViewCurrentPage,
+            builder: (_, weekPage, __) {
+              final currentWeekDates = _weekRangeList.isNotEmpty &&
+                      weekPage >= 0 &&
+                      weekPage < _weekRangeList.length
+                  ? _weekRangeList[weekPage]
+                  : null;
               return Header(
                 monthDate:
                     _monthRangeList[_monthViewCurrentPage.value].firstDay,
                 onPressed: _handleTodayPressed,
                 dateStyle: widget.headerStyle,
                 todayStyle: widget.todayStyle,
+                weekDates: currentWeekDates,
+                onWeekChanged: _handleWeekChanged,
+                onDateSelected: _handleDateSelected,
+                startWeekDay: widget.startWeekDay,
                 child: widget.showNavigationArrows
                     ? Row(
                         children: [
@@ -255,6 +283,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
               );
             },
           ),
+          SizedBox(height: 12.h),
           WeekDays(
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.hintColor,
@@ -264,142 +293,134 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                 ? _weekNames!
                 : const <String>['S', 'M', 'T', 'W', 'T', 'F', 'S'],
           ),
-          widget.disableScroll
-              ? _buildWeekViewOnly()
-              : AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (_, __) {
-                    final height = Tween<double>(
-                      begin: widget.weekLineHeight,
-                      end:
-                          widget.weekLineHeight * widget.weeksInMonthViewAmount,
-                    ).transform(_animationController.value);
-                    return SizedBox(
-                      height: height,
-                      child: ValueListenableBuilder<DateTime>(
-                        valueListenable: _controller,
-                        builder: (_, selectedDate, __) {
-                          return Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              IgnorePointer(
-                                ignoring: _animationController.value == 0.0,
+          // widget.disableScroll
+          //     ? _buildWeekViewOnly()
+          //     :
+          AnimatedBuilder(
+            animation: _animationController,
+            builder: (_, __) {
+              final height = Tween<double>(
+                begin: widget.weekLineHeight,
+                end: widget.weekLineHeight * widget.weeksInMonthViewAmount,
+              ).transform(_animationController.value);
+              return SizedBox(
+                height: height,
+                child: ValueListenableBuilder<DateTime>(
+                  valueListenable: _controller,
+                  builder: (_, selectedDate, __) {
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        IgnorePointer(
+                          ignoring: _animationController.value == 0.0,
+                          child: Opacity(
+                            opacity: Tween<double>(
+                              begin: 0.0,
+                              end: 1.0,
+                            ).evaluate(_animationController),
+                            child: PageView.builder(
+                              onPageChanged: (pageIndex) {
+                                if (widget.onHorizontalDrag != null) {
+                                  widget.onHorizontalDrag!(
+                                    _monthRangeList[pageIndex].firstDay,
+                                  );
+                                }
+                                _monthViewCurrentPage.value = pageIndex;
+                              },
+                              controller: _monthPageController,
+                              physics: _animationController.value == 1.0
+                                  ? const AlwaysScrollableScrollPhysics()
+                                  : const NeverScrollableScrollPhysics(),
+                              itemCount: _monthRangeList.length,
+                              itemBuilder: (_, pageIndex) {
+                                return MonthView(
+                                  innerDot: widget.innerDot,
+                                  monthView: _monthRangeList[pageIndex],
+                                  todayDate: _todayDate,
+                                  selectedDate: selectedDate,
+                                  weekLineHeight: widget.weekLineHeight,
+                                  weeksAmount: widget.weeksInMonthViewAmount,
+                                  onChanged: _handleDateChanged,
+                                  events: widget.events,
+                                  eventMap: widget.eventMap,
+                                  keepLineSize: widget.keepLineSize,
+                                  textStyle: widget.calendarTextStyle,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        ValueListenableBuilder<int>(
+                          valueListenable: _monthViewCurrentPage,
+                          builder: (_, pageIndex, __) {
+                            final index = selectedDate.findWeekIndex(
+                              _monthRangeList[_monthViewCurrentPage.value]
+                                  .dates,
+                            );
+                            final offset = index /
+                                    (widget.weeksInMonthViewAmount - 1) *
+                                    2 -
+                                1.0;
+                            return Align(
+                              alignment: Alignment(0.0, offset),
+                              child: IgnorePointer(
+                                ignoring: _animationController.value == 1.0,
                                 child: Opacity(
                                   opacity: Tween<double>(
-                                    begin: 0.0,
-                                    end: 1.0,
+                                    begin: 1.0,
+                                    end: 0.0,
                                   ).evaluate(_animationController),
-                                  child: PageView.builder(
-                                    onPageChanged: (pageIndex) {
-                                      if (widget.onHorizontalDrag != null) {
-                                        widget.onHorizontalDrag!(
-                                          _monthRangeList[pageIndex].firstDay,
+                                  child: SizedBox(
+                                    height: widget.weekLineHeight,
+                                    child: PageView.builder(
+                                      onPageChanged: (indexPage) {
+                                        final pageIndex =
+                                            _monthRangeList.indexWhere(
+                                          (index) =>
+                                              index.firstDay.month ==
+                                              _weekRangeList[indexPage]
+                                                  .first
+                                                  .month,
                                         );
-                                      }
-                                      _monthViewCurrentPage.value = pageIndex;
-                                    },
-                                    controller: _monthPageController,
-                                    physics: _animationController.value == 1.0
-                                        ? const AlwaysScrollableScrollPhysics()
-                                        : const NeverScrollableScrollPhysics(),
-                                    itemCount: _monthRangeList.length,
-                                    itemBuilder: (_, pageIndex) {
-                                      return MonthView(
-                                        innerDot: widget.innerDot,
-                                        monthView: _monthRangeList[pageIndex],
-                                        todayDate: _todayDate,
-                                        selectedDate: selectedDate,
-                                        weekLineHeight: widget.weekLineHeight,
-                                        weeksAmount:
-                                            widget.weeksInMonthViewAmount,
-                                        onChanged: _handleDateChanged,
-                                        events: widget.events,
-                                        eventMap: widget.eventMap,
-                                        keepLineSize: widget.keepLineSize,
-                                        textStyle: widget.calendarTextStyle,
-                                      );
-                                    },
+
+                                        if (widget.onHorizontalDrag != null) {
+                                          widget.onHorizontalDrag!(
+                                            _monthRangeList[pageIndex].firstDay,
+                                          );
+                                        }
+                                        _monthViewCurrentPage.value = pageIndex;
+                                        _weekViewCurrentPage.value = indexPage;
+                                      },
+                                      controller: _weekPageController,
+                                      itemCount: _weekRangeList.length,
+                                      physics: _closeMonthScroll(),
+                                      itemBuilder: (context, index) {
+                                        return WeekView(
+                                          innerDot: widget.innerDot,
+                                          dates: _weekRangeList[index],
+                                          selectedDate: selectedDate,
+                                          lineHeight: widget.weekLineHeight,
+                                          onChanged: _handleWeekDateChanged,
+                                          events: widget.events,
+                                          eventMap: widget.eventMap,
+                                          keepLineSize: widget.keepLineSize,
+                                          textStyle: widget.calendarTextStyle,
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),
-                              ValueListenableBuilder<int>(
-                                valueListenable: _monthViewCurrentPage,
-                                builder: (_, pageIndex, __) {
-                                  final index = selectedDate.findWeekIndex(
-                                    _monthRangeList[_monthViewCurrentPage.value]
-                                        .dates,
-                                  );
-                                  final offset = index /
-                                          (widget.weeksInMonthViewAmount - 1) *
-                                          2 -
-                                      1.0;
-                                  return Align(
-                                    alignment: Alignment(0.0, offset),
-                                    child: IgnorePointer(
-                                      ignoring:
-                                          _animationController.value == 1.0,
-                                      child: Opacity(
-                                        opacity: Tween<double>(
-                                          begin: 1.0,
-                                          end: 0.0,
-                                        ).evaluate(_animationController),
-                                        child: SizedBox(
-                                          height: widget.weekLineHeight,
-                                          child: PageView.builder(
-                                            onPageChanged: (indexPage) {
-                                              final pageIndex =
-                                                  _monthRangeList.indexWhere(
-                                                (index) =>
-                                                    index.firstDay.month ==
-                                                    _weekRangeList[indexPage]
-                                                        .first
-                                                        .month,
-                                              );
-
-                                              if (widget.onHorizontalDrag !=
-                                                  null) {
-                                                widget.onHorizontalDrag!(
-                                                  _monthRangeList[pageIndex]
-                                                      .firstDay,
-                                                );
-                                              }
-                                              _monthViewCurrentPage.value =
-                                                  pageIndex;
-                                            },
-                                            controller: _weekPageController,
-                                            itemCount: _weekRangeList.length,
-                                            physics: _closeMonthScroll(),
-                                            itemBuilder: (context, index) {
-                                              return WeekView(
-                                                innerDot: widget.innerDot,
-                                                dates: _weekRangeList[index],
-                                                selectedDate: selectedDate,
-                                                lineHeight:
-                                                    widget.weekLineHeight,
-                                                onChanged:
-                                                    _handleWeekDateChanged,
-                                                events: widget.events,
-                                                eventMap: widget.eventMap,
-                                                keepLineSize:
-                                                    widget.keepLineSize,
-                                                textStyle:
-                                                    widget.calendarTextStyle,
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      ),
+                            );
+                          },
+                        ),
+                      ],
                     );
                   },
                 ),
+              );
+            },
+          ),
           if (widget.showHandleBar && !widget.disableScroll)
             HandleBar(
               onPressed: () async {
@@ -407,8 +428,158 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                 _animationValue = 1.0;
               },
             ),
+          SizedBox(
+            height: 8.h,
+          ),
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 8.h),
+            height: 0.5.h,
+            width: double.infinity,
+            color: Colors.grey.withOpacity(0.5),
+          ),
+          _buildFooter(theme),
         ],
       ),
+    );
+  }
+
+  int _countTodayEvents() {
+    if (widget.eventMap == null) return 0;
+    final today = _controller.value ?? DateTime.now().toZeroTime();
+    final todayEvents = widget.eventMap!.entries
+        .where((entry) {
+          final entryDate = entry.key.toZeroTime();
+          return entryDate.isAtSameMomentAs(today);
+        })
+        .expand((entry) => entry.value)
+        .where((event) {
+          if (!_showGDHT && event.type == 'GĐHT') return false;
+          if (!_showGDCT && event.type == 'GĐCT') return false;
+          return true;
+        })
+        .fold<int>(0, (sum, event) => sum + event.quantity);
+    return todayEvents;
+  }
+
+  int _countWeekEvents() {
+    if (widget.eventMap == null || _weekRangeList.isEmpty) return 0;
+    final currentWeekPage = _weekViewCurrentPage.value;
+    if (currentWeekPage < 0 || currentWeekPage >= _weekRangeList.length) {
+      return 0;
+    }
+    final weekDates = _weekRangeList[currentWeekPage];
+    final weekEvents = widget.eventMap!.entries
+        .where((entry) {
+          final entryDate = entry.key.toZeroTime();
+          return weekDates
+              .any((date) => entryDate.isAtSameMomentAs(date.toZeroTime()));
+        })
+        .expand((entry) => entry.value)
+        .where((event) {
+          if (!_showGDHT && event.type == 'GĐHT') return false;
+          if (!_showGDCT && event.type == 'GĐCT') return false;
+          return true;
+        })
+        .fold<int>(0, (sum, event) => sum + event.quantity);
+    return weekEvents;
+  }
+
+  Widget _buildFooter(ThemeData theme, {DateTime? selectedDate}) {
+    return ValueListenableBuilder<int>(
+      valueListenable: _weekViewCurrentPage,
+      builder: (_, __, ___) {
+        final todayCount = _countTodayEvents();
+        final weekCount = _countWeekEvents();
+
+        return Container(
+          // color: Colors.red,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Checkbox(
+                    value: _showGDHT,
+                    focusColor: Color(0xff1F3368),
+                    activeColor: Color(0xff1F3368),
+                    onChanged: (value) {
+                      setState(() {
+                        _showGDHT = value ?? true;
+                      });
+                    },
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  Text(
+                    'GĐHT',
+                    style:
+                        theme.textTheme.bodyMedium?.copyWith(fontSize: 12.sp),
+                  ),
+                  SizedBox(
+                    width: 4.w,
+                  ),
+                  Checkbox(
+                    focusColor: Color(0xff1F3368),
+                    activeColor: Color(0xff1F3368),
+                    value: _showGDCT,
+                    onChanged: (value) {
+                      setState(() {
+                        _showGDCT = value ?? true;
+                      });
+                    },
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  Text(
+                    'GĐCT',
+                    style:
+                        theme.textTheme.bodyMedium?.copyWith(fontSize: 12.sp),
+                  ),
+                ],
+              ),
+              SizedBox(width: 4.w),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'H.nay: ',
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontSize: 12.sp),
+                      ),
+                      TextSpan(
+                        text: '$todayCount',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '  T.này: ',
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontSize: 12.sp),
+                      ),
+                      TextSpan(
+                        text: '$weekCount',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  maxLines: 1,
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -432,6 +603,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                 );
               }
               _monthViewCurrentPage.value = pageIndex;
+              _weekViewCurrentPage.value = indexPage;
             },
             controller: _weekPageController,
             itemCount: _weekRangeList.length,
@@ -460,6 +632,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
     _animationController.dispose();
     _monthPageController!.dispose();
     _monthViewCurrentPage.dispose();
+    _weekViewCurrentPage.dispose();
 
     if (widget.controller == null) {
       _controller.dispose();
@@ -476,7 +649,9 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
   }
 
   void _handleDateChanged(DateTime date) {
-    _controller.value = date;
+    setState(() {
+      _controller.value = date;
+    });
   }
 
   void _handleFinishDrag() async {
@@ -496,6 +671,60 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
 
     _monthPageController!.jumpToPage(widget.preloadMonthViewAmount ~/ 2);
     _weekPageController!.jumpToPage(widget.preloadWeekViewAmount ~/ 2);
+    _weekViewCurrentPage.value = widget.preloadWeekViewAmount ~/ 2;
+  }
+
+  void _handleWeekChanged(DateTime date) {
+    final targetWeek = date.firstDayOfWeek(startWeekDay: widget.startWeekDay);
+    final targetWeekDates = targetWeek.weekDates();
+
+    final weekIndex = _weekRangeList.indexWhere((week) {
+      return week.first.isAtSameMomentAs(targetWeekDates.first);
+    });
+
+    if (weekIndex >= 0 && weekIndex < _weekRangeList.length) {
+      _weekPageController!.animateToPage(
+        weekIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      _weekViewCurrentPage.value = weekIndex;
+    } else {
+      _controller.value = date;
+      _weekRangeList = date.generateWeeks(
+        widget.preloadWeekViewAmount,
+        startWeekDay: widget.startWeekDay,
+      );
+      _weekPageController!.jumpToPage(widget.preloadWeekViewAmount ~/ 2);
+      _weekViewCurrentPage.value = widget.preloadWeekViewAmount ~/ 2;
+    }
+  }
+
+  void _handleDateSelected(DateTime date) {
+    _controller.value = date.toZeroTime();
+
+    final targetWeek = date.firstDayOfWeek(startWeekDay: widget.startWeekDay);
+    final targetWeekDates = targetWeek.weekDates();
+
+    final weekIndex = _weekRangeList.indexWhere((week) {
+      return week.first.isAtSameMomentAs(targetWeekDates.first);
+    });
+
+    if (weekIndex >= 0 && weekIndex < _weekRangeList.length) {
+      _weekPageController!.animateToPage(
+        weekIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      _weekViewCurrentPage.value = weekIndex;
+    } else {
+      _weekRangeList = date.generateWeeks(
+        widget.preloadWeekViewAmount,
+        startWeekDay: widget.startWeekDay,
+      );
+      _weekPageController!.jumpToPage(widget.preloadWeekViewAmount ~/ 2);
+      _weekViewCurrentPage.value = widget.preloadWeekViewAmount ~/ 2;
+    }
   }
 
   void _handlePrevPressed() {
