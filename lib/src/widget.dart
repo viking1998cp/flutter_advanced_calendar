@@ -42,7 +42,9 @@ class AdvancedCalendar extends StatefulWidget {
     this.onTapDayInWeek,
     required this.getFirstAndLastWeek,
   }) : assert(
-          keepLineSize && innerDot || innerDot && !keepLineSize || !innerDot && !keepLineSize,
+          keepLineSize && innerDot ||
+              innerDot && !keepLineSize ||
+              !innerDot && !keepLineSize,
           'keepLineSize should be used only when innerDot is true',
         );
 
@@ -112,7 +114,8 @@ class AdvancedCalendar extends StatefulWidget {
   _AdvancedCalendarState createState() => _AdvancedCalendarState();
 }
 
-class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerProviderStateMixin {
+class _AdvancedCalendarState extends State<AdvancedCalendar>
+    with SingleTickerProviderStateMixin {
   late ValueNotifier<int> _monthViewCurrentPage;
   late AnimationController _animationController;
   late AdvancedCalendarController _controller;
@@ -203,10 +206,14 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                         final moveOffset = details.globalPosition;
                         final diffY = moveOffset.dy - _captureOffset!.dy;
 
-                        _animationController.value = _animationValue + diffY / (widget.weekLineHeight * 5);
+                        _animationController.value = _animationValue +
+                            diffY / (widget.weekLineHeight * 5);
                       },
-                onVerticalDragEnd: widget.disableScroll ? null : (details) => _handleFinishDrag(),
-                onVerticalDragCancel: widget.disableScroll ? null : _handleFinishDrag,
+                onVerticalDragEnd: widget.disableScroll
+                    ? null
+                    : (details) => _handleFinishDrag(),
+                onVerticalDragCancel:
+                    widget.disableScroll ? null : _handleFinishDrag,
                 child: _buildCalendarContent(),
               ),
       ),
@@ -237,31 +244,46 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                         InkWell(
                           onTap: _handlePrevPressed,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4).r,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 4,
+                            ).r,
                             child: Icon(
                               Icons.arrow_back_ios,
                               size: 14.w,
+                              color: Colors.red,
                             ),
                           ),
                         ),
                         InkWell(
                           key: _datePickerKey,
                           onTap: handleSelectWeekInCalendar,
-                          child: Text(
-                            "${DateFormat("dd 'thg' MM", "vi").format(firstWeek)} - ${DateFormat("dd 'thg' MM", "vi").format(lastWeek)}",
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.w500,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 4,
+                            ).r,
+                            child: Text(
+                              "${DateFormat("dd 'thg' MM", "vi").format(firstWeek)} - ${DateFormat("dd 'thg' MM", "vi").format(lastWeek)}",
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red,
+                              ),
                             ),
                           ),
                         ),
                         InkWell(
                           onTap: _handleNextPressed,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4).r,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 4,
+                            ).r,
                             child: Icon(
                               Icons.arrow_forward_ios,
                               size: 14.w,
+                              color: Colors.red,
                             ),
                           ),
                         ),
@@ -324,7 +346,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                                       todayDate: _todayDate,
                                       selectedDate: selectedDate,
                                       weekLineHeight: widget.weekLineHeight,
-                                      weeksAmount: widget.weeksInMonthViewAmount,
+                                      weeksAmount:
+                                          widget.weeksInMonthViewAmount,
                                       onChanged: _handleDateChanged,
                                       events: widget.events,
                                       eventMap: widget.eventMap,
@@ -339,9 +362,13 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                               valueListenable: _monthViewCurrentPage,
                               builder: (_, pageIndex, __) {
                                 final index = selectedDate.findWeekIndex(
-                                  _monthRangeList[_monthViewCurrentPage.value].dates,
+                                  _monthRangeList[_monthViewCurrentPage.value]
+                                      .dates,
                                 );
-                                final offset = index / (widget.weeksInMonthViewAmount - 1) * 2 - 1.0;
+                                final offset = index /
+                                        (widget.weeksInMonthViewAmount - 1) *
+                                        2 -
+                                    1.0;
                                 return Align(
                                   alignment: Alignment(0.0, offset),
                                   child: IgnorePointer(
@@ -355,16 +382,24 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                                         height: widget.weekLineHeight,
                                         child: PageView.builder(
                                           onPageChanged: (indexPage) {
-                                            final pageIndex = _monthRangeList.indexWhere(
-                                              (index) => index.firstDay.month == _weekRangeList[indexPage].first.month,
+                                            final pageIndex =
+                                                _monthRangeList.indexWhere(
+                                              (index) =>
+                                                  index.firstDay.month ==
+                                                  _weekRangeList[indexPage]
+                                                      .first
+                                                      .month,
                                             );
 
-                                            if (widget.onHorizontalDrag != null) {
+                                            if (widget.onHorizontalDrag !=
+                                                null) {
                                               widget.onHorizontalDrag!(
-                                                _monthRangeList[pageIndex].firstDay,
+                                                _monthRangeList[pageIndex]
+                                                    .firstDay,
                                               );
                                             }
-                                            _monthViewCurrentPage.value = pageIndex;
+                                            _monthViewCurrentPage.value =
+                                                pageIndex;
                                           },
                                           controller: _weekPageController,
                                           itemCount: _weekRangeList.length,
@@ -379,7 +414,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                                               events: widget.events,
                                               eventMap: widget.eventMap,
                                               keepLineSize: widget.keepLineSize,
-                                              textStyle: widget.calendarTextStyle,
+                                              textStyle:
+                                                  widget.calendarTextStyle,
                                             );
                                           },
                                         ),
@@ -416,7 +452,9 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
           return PageView.builder(
             onPageChanged: (indexPage) {
               final pageIndex = _monthRangeList.indexWhere(
-                (index) => index.firstDay.month == _weekRangeList[indexPage].first.month,
+                (index) =>
+                    index.firstDay.month ==
+                    _weekRangeList[indexPage].first.month,
               );
               if (widget.onHorizontalDrag != null) {
                 widget.onHorizontalDrag!(
@@ -424,12 +462,15 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
                 );
               }
               if (!isPressToday) {
-                if (currentPageWeek > indexPage || _monthViewCurrentPage.value > pageIndex) {
-                  final dateBack = DateTime(firstWeek.year, firstWeek.month, firstWeek.day - 1);
+                if (currentPageWeek > indexPage ||
+                    _monthViewCurrentPage.value > pageIndex) {
+                  final dateBack = DateTime(
+                      firstWeek.year, firstWeek.month, firstWeek.day - 1);
                   firstWeek = getFirstWeek(date: dateBack);
                   lastWeek = getLastWeek(date: dateBack);
                 } else {
-                  final dateNext = DateTime(lastWeek.year, lastWeek.month, lastWeek.day + 1);
+                  final dateNext =
+                      DateTime(lastWeek.year, lastWeek.month, lastWeek.day + 1);
                   firstWeek = getFirstWeek(date: dateNext);
                   lastWeek = getLastWeek(date: dateNext);
                 }
@@ -477,7 +518,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
   void _handleWeekDateChanged(DateTime date) {
     _handleDateChanged(date);
 
-    _monthViewCurrentPage.value = _monthRangeList.lastIndexWhere((monthRange) => monthRange.dates.contains(date));
+    _monthViewCurrentPage.value = _monthRangeList
+        .lastIndexWhere((monthRange) => monthRange.dates.contains(date));
     if (widget.onTapDayInWeek != null) {
       widget.onTapDayInWeek?.call(date);
     }
@@ -545,8 +587,10 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
   }
 
   ScrollPhysics _closeMonthScroll() {
-    if ((_monthViewCurrentPage.value == (widget.preloadMonthViewAmount ~/ 2) + 3 ||
-        _monthViewCurrentPage.value == (widget.preloadMonthViewAmount ~/ 2) - 3)) {
+    if ((_monthViewCurrentPage.value ==
+            (widget.preloadMonthViewAmount ~/ 2) + 3 ||
+        _monthViewCurrentPage.value ==
+            (widget.preloadMonthViewAmount ~/ 2) - 3)) {
       return const NeverScrollableScrollPhysics();
     } else {
       return const AlwaysScrollableScrollPhysics();
@@ -621,7 +665,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar> with SingleTickerPr
       return;
     }
 
-    final RenderBox? renderBox = _datePickerKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? renderBox =
+        _datePickerKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     final size = renderBox.size;
