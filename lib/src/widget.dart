@@ -251,7 +251,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                             child: Icon(
                               Icons.arrow_back_ios,
                               size: 14.w,
-                              color: Colors.red,
                             ),
                           ),
                         ),
@@ -268,7 +267,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                               style: TextStyle(
                                 fontSize: 10.sp,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.red,
                               ),
                             ),
                           ),
@@ -283,7 +281,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                             child: Icon(
                               Icons.arrow_forward_ios,
                               size: 14.w,
-                              color: Colors.red,
                             ),
                           ),
                         ),
